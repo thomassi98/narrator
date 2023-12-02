@@ -5,7 +5,9 @@ import json
 import time
 import simpleaudio as sa
 import errno
+from PIL import Image
 from elevenlabs import generate, play, set_api_key, voices
+import threading
 
 client = OpenAI()
 
@@ -27,7 +29,9 @@ def encode_image(image_path):
 def play_audio(text):
     audio = generate(text, voice=os.environ.get("ELEVENLABS_VOICE_ID"))
 
+    print("Audio generated")
     unique_id = base64.urlsafe_b64encode(os.urandom(30)).decode("utf-8").rstrip("=")
+
     dir_path = os.path.join("narration", unique_id)
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, "audio.wav")
@@ -35,6 +39,7 @@ def play_audio(text):
     with open(file_path, "wb") as f:
         f.write(audio)
 
+    #subprocess.run(["python", "play_audio_sub.py", file_path])
     play(audio)
 
 
@@ -85,17 +90,31 @@ def main():
 
         # analyze posture
         print("👀 David is watching...")
+        print("Analysis started")
+        analysis_start = time.time()
+
         analysis = analyze_image(base64_image, script=script)
+
+        print("Analysis finished ", time.time()-analysis_start)
+
 
         print("🎙️ David says:")
         print(analysis)
 
+
+        #thread = threading.Thread(target=play_audio, args=(analysis,))
+        print("Starting audio play for this image")
+        if os.path.exists(image_path):
+            image = Image.open(image_path)
+            image.show()
+        #thread.start()
+        #play_audio(analysis)
+
+        #script = script + [{"role": "assistant", "content": analysis}]
+
         play_audio(analysis)
-
-        script = script + [{"role": "assistant", "content": analysis}]
-
         # wait for 5 seconds
-        time.sleep(5)
+        time.sleep(1)
 
 
 if __name__ == "__main__":

@@ -27,6 +27,8 @@ while True:
         # Convert the frame to a PIL image
         pil_img = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
+        #pil_img.show()
+
         # Resize the image
         max_size = 250
         ratio = max_size / max(pil_img.size)
